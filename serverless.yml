@@ -18,6 +18,7 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     CONNECTIONS_TABLE: Connections-${self:provider.stage}
     THUMBNAILS_S3_BUCKET: hoamx1-udagram-thumbnail-${self:provider.stage}
+    AUTH_0_SECRET: INp1k3YN68Q5cXTDJvx1PXjlU6sWcLCyi1p2sNGSY_vrnqkw1yCVlDzklZ9kWfoU
 
   iamRoleStatements:
     - Effect: Allow
@@ -68,6 +69,10 @@ custom:
         schema: ${file(models/create-image-request.json)}
 
 functions:
+
+  Auth:
+    handler: src/functions/lambda/auth/auth0Authorizer.handler
+
   GetGroups:
     handler: src/functions/lambda/http/getGroups.handler
     events:
@@ -82,6 +87,8 @@ functions:
           method: post
           path: groups
           cors: true
+          authorizer: Auth
+            
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new group
@@ -112,6 +119,7 @@ functions:
           method: post
           path: groups/{groupId}/images
           cors: true
+          authorizer: Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new image
@@ -173,6 +181,18 @@ functions:
 
 resources:
   Resources:
+
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator
       Properties:
@@ -341,4 +361,3 @@ resources:
                 IpAddress:
                   aws:SourceIp:
                     - "116.96.46.173"
-
