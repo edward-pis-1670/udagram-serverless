@@ -1,15 +1,21 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import * as AWS from 'aws-sdk';
+import {
+    APIGatewayProxyHandler,
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult,
+} from "aws-lambda";
+import * as AWS from "aws-sdk";
 
-const docClient = new AWS.DynamoDB.DocumentClient()
+const docClient = new AWS.DynamoDB.DocumentClient();
 
-const groupsTable = process.env.GROUPS_TABLE
-const imagesTable = process.env.IMAGES_TABLE
+const groupsTable = process.env.GROUPS_TABLE;
+const imagesTable = process.env.IMAGES_TABLE;
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const groupId = event.pathParameters.groupId
+export const handler: APIGatewayProxyHandler = async (
+    event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+    const groupId = event.pathParameters.groupId;
 
-    const validGroupId =  await groupExists(groupId)
+    const validGroupId = await groupExists(groupId);
 
     if (!validGroupId) {
         return {
@@ -23,18 +29,18 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         };
     }
 
-    const images = await getImagesPerGroup(groupId)
+    const images = await getImagesPerGroup(groupId);
 
     return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({
-        items: images
-      })
-    }
-}
+        statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
+            items: images,
+        }),
+    };
+};
 
 async function groupExists(groupId: string) {
     const result = await docClient
