@@ -42,6 +42,10 @@ provider:
       Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
     - Effect: Allow
       Action:
+        - s3:PutObject
+      Resource: "arn:aws:s3:::${self:provider.environment.THUMBNAILS_S3_BUCKET}/*"
+    - Effect: Allow
+      Action:
         - dynamodb:Scan
         - dynamodb:PutItem
         - dynamodb:DeleteItem
@@ -242,35 +246,6 @@ resources:
                 - HEAD
               MaxAge: 3000
 
-
-    ThumbnailsBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:provider.environment.THUMBNAILS_S3_BUCKET}
-
-    SendUploadNotificationsPermission:
-      Type: AWS::Lambda::Permission
-      Properties:
-        Action: lambda:InvokeFunction
-        FunctionName: !Ref SendUploadNotificationsLambdaFunction
-        Principal: s3.amazonaws.com
-        SourceAccount: !Ref AWS::AccountId
-        SourceArn: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}
-
-    WebSocketConnectionsDynamoDBTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          -
-            AttributeName: id
-            AttributeType: S
-        KeySchema:
-          -
-            AttributeName: id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.CONNECTIONS_TABLE}
-
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
@@ -303,6 +278,41 @@ resources:
         Topics:
           - !Ref ImagesTopic
 
+
+    ThumbnailsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.THUMBNAILS_S3_BUCKET}
+
+    ImagesTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: Image bucket topic
+        TopicName: ${self:custom.topicName}
+
+    SendUploadNotificationsPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref SendUploadNotificationsLambdaFunction
+        Principal: s3.amazonaws.com
+        SourceAccount: !Ref AWS::AccountId
+        SourceArn: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}
+
+    WebSocketConnectionsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.CONNECTIONS_TABLE}
+
     ImagesSearch:
       Type: AWS::Elasticsearch::Domain
       Properties:
@@ -332,8 +342,3 @@ resources:
                   aws:SourceIp:
                     - "116.96.46.173"
 
-    ImagesTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: Image bucket topic
-        TopicName: ${self:custom.topicName}
