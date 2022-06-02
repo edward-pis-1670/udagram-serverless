@@ -1,7 +1,9 @@
 import {
-  APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult
+  APIGatewayProxyEvent, APIGatewayProxyResult
 } from "aws-lambda";
 import * as AWS from "aws-sdk";
+import * as middy from 'middy';
+import { cors } from 'middy/middlewares';
 import * as uuid from "uuid";
 
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -14,7 +16,7 @@ const imagesTable = process.env.IMAGES_TABLE;
 const bucketName = process.env.IMAGES_S3_BUCKET;
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION;
 
-export const handler: APIGatewayProxyHandler = async (
+export const handler = middy(async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
     console.log("Caller event", event);
@@ -42,7 +44,7 @@ export const handler: APIGatewayProxyHandler = async (
             uploadUrl: url,
         }),
     };
-};
+});
 
 async function groupExists(groupId: string) {
     const result = await docClient
@@ -88,3 +90,8 @@ function getUploadUrl(imageId: string) {
         Expires: +urlExpiration,
     });
 }
+
+
+handler.use(cors({
+  credentials: true
+}))
