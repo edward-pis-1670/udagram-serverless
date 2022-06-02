@@ -1,3 +1,4 @@
+import { getUserId } from "../../auth/utils";
 import {
   APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult
 } from "aws-lambda";
@@ -10,11 +11,17 @@ const groupsTable = process.env.GROUPS_TABLE;
 export const handler: APIGatewayProxyHandler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+
     console.log("Processing event: ", event);
     const itemId = uuid.v4();
     const parsedBody = JSON.parse(event.body);
+    const authorization = event.headers.Authorization
+    const split = authorization.split(' ')
+    const jwtToken = split[1]
+
     const newItem = {
         id: itemId,
+        userId: getUserId(jwtToken),
         ...parsedBody,
     };
 
