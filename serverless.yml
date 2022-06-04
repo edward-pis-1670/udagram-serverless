@@ -27,10 +27,10 @@ provider:
 
   iamRoleStatements:
 
-    - Effect: Allow
-      Action:
-        - codedeploy:*
-      Resource: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess'
+    # - Effect: Allow
+    #   Action:
+    #     - codedeploy:*
+    #   Resource: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess'
     - Effect: Allow
       Action: 
         - dynamodb:Scan
@@ -135,9 +135,9 @@ functions:
             description: Create a new group
             requestModels:
               'application/json': GroupRequest
-    deploymentSettings:
-      type: Linear10PercentEvery1Minute
-      alias: Live
+    # deploymentSettings:
+    #   type: Linear10PercentEvery1Minute
+    #   alias: Live
 
   GetImages:
     handler: src/functions/lambda/http/getImages.handler
@@ -214,14 +214,14 @@ functions:
       - websocket:
           route: $disconnect
 
-  SyncWithElasticSearch:
-    environment:
-      ES_ENDPOINT: !GetAtt ImagesSearch.DomainEndpoint
-    handler: src/functions/lambda/dynamoDb/elasticSearchSync.handler
-    events:
-      - stream:
-          type: dynamodb
-          arn: !GetAtt ImagesDynamoDBTable.StreamArn    
+  # SyncWithElasticSearch:
+  #   environment:
+  #     ES_ENDPOINT: !GetAtt ImagesSearch.DomainEndpoint
+  #   handler: src/functions/lambda/dynamoDb/elasticSearchSync.handler
+  #   events:
+  #     - stream:
+  #         type: dynamodb
+  #         arn: !GetAtt ImagesDynamoDBTable.StreamArn    
 
 resources:
   Resources:
