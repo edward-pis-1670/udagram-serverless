@@ -3,7 +3,6 @@ import {
     APIGatewayProxyResult,
     APIGatewayProxyHandler,
 } from "aws-lambda";
-import "source-map-support/register";
 import * as AWS from "aws-sdk";
 
 const docClient = new AWS.DynamoDB.DocumentClient();
