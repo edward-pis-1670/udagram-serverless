@@ -3,6 +3,10 @@ plugins:
   - serverless-webpack
   - serverless-reqvalidator-plugin
   - serverless-aws-documentation
+  - serverless-plugin-canary-deployments
+  - serverless-offline
+  - serverless-dynamodb-local
+  - serverless-iam-roles-per-function
 
 provider:
   name: aws
@@ -22,6 +26,11 @@ provider:
     AUTH_0_SECRET_FIELD: auth0Secret
 
   iamRoleStatements:
+
+    - Effect: Allow
+      Action:
+        - codedeploy:*
+      Resource: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess'
     - Effect: Allow
       Action: 
         - dynamodb:Scan
@@ -63,6 +72,25 @@ provider:
 
 custom:
   topicName: imagesTopic-${self:provider.stage}
+
+  serverless-offline:
+    httpPort: 3003
+
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
+      shell: true
+    stages:
+      - dev
+    seed:
+      groups:
+        - sources:
+          - table: Group-dev
+            source: [./seed/group.json]
+
   documentation:
     api:
       info:
@@ -107,6 +135,9 @@ functions:
             description: Create a new group
             requestModels:
               'application/json': GroupRequest
+    deploymentSettings:
+      type: Linear10PercentEvery1Minute
+      alias: Live
 
   GetImages:
     handler: src/functions/lambda/http/getImages.handler
@@ -123,6 +154,7 @@ functions:
           method: get
           path: images/{imageId}
           cors: true
+
 
   CreateImage:
     handler: src/functions/lambda/http/createImage.handler

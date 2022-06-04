@@ -6,7 +6,7 @@ import { Group } from '../models/Group'
 export class GroupAccess {
 
   constructor(
-    private readonly docClient: DocumentClient = new AWS.DynamoDB.DocumentClient(),
+    private readonly docClient: DocumentClient = createDynamoDBClient(),
     private readonly groupsTable = process.env.GROUPS_TABLE) {
   }
 
@@ -29,5 +29,19 @@ export class GroupAccess {
 
     return group
   }
+}
+
+function createDynamoDBClient() {
+  if (true) {
+    console.log('Creating a local DynamoDB instance')
+    return new AWS.DynamoDB.DocumentClient({
+      region: 'localhost',
+      endpoint: 'http://localhost:8000',
+      accessKeyId: 'AKIA433CNE5RVSZSUW22',  // needed if you don't have aws credentials at all in env
+      secretAccessKey: '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' // needed if you don't have aws credentials at all in env
+    })
+  }
+
+  return new AWS.DynamoDB.DocumentClient()
 }
 
