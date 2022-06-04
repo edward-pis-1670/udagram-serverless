@@ -13,6 +13,7 @@
     "@middy/core": "^2.5.3",
     "@middy/http-json-body-parser": "^2.5.3",
     "@types/elasticsearch": "^5.0.40",
+    "aws-xray-sdk": "^2.2.0",
     "jsonwebtoken": "^8.5.1",
     "serverless-dynamodb-local": "^0.2.35",
     "serverless-plugin-canary-deployments": "^0.4.7"

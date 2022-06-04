@@ -14,6 +14,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
+  tracing:
+    apiGateway: true
+    lambda: true
+
   environment:
     GROUPS_TABLE: Groups-${self:provider.stage}
     IMAGES_TABLE: Images-${self:provider.stage}
@@ -26,6 +30,13 @@ provider:
     AUTH_0_SECRET_FIELD: auth0Secret
 
   iamRoleStatements:
+
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
 
     # - Effect: Allow
     #   Action:
@@ -377,34 +388,34 @@ resources:
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.CONNECTIONS_TABLE}
 
-    ImagesSearch:
-      Type: AWS::Elasticsearch::Domain
-      Properties:
-        ElasticsearchVersion: '6.3'
-        DomainName: images-search-${self:provider.stage}
-        ElasticsearchClusterConfig:
-          DedicatedMasterEnabled: false
-          InstanceCount: '1'
-          ZoneAwarenessEnabled: false
-          InstanceType: t2.small.elasticsearch
-        EBSOptions:
-          EBSEnabled: true
-          Iops: 0
-          VolumeSize: 10
-          VolumeType: 'gp2'
+    # ImagesSearch:
+    #   Type: AWS::Elasticsearch::Domain
+    #   Properties:
+    #     ElasticsearchVersion: '6.3'
+    #     DomainName: images-search-${self:provider.stage}
+    #     ElasticsearchClusterConfig:
+    #       DedicatedMasterEnabled: false
+    #       InstanceCount: '1'
+    #       ZoneAwarenessEnabled: false
+    #       InstanceType: t2.small.elasticsearch
+    #     EBSOptions:
+    #       EBSEnabled: true
+    #       Iops: 0
+    #       VolumeSize: 10
+    #       VolumeType: 'gp2'
 
-        AccessPolicies:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action: 'es:ESHttp*'            
-              Principal:
-                AWS: "*"
-              Resource: "*"
-              Condition:
-                IpAddress:
-                  aws:SourceIp:
-                    - "116.96.46.173"
+    #     AccessPolicies:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Action: 'es:ESHttp*'            
+    #           Principal:
+    #             AWS: "*"
+    #           Resource: "*"
+    #           Condition:
+    #             IpAddress:
+    #               aws:SourceIp:
+    #                 - "116.96.46.173"
 
     KMSKey:
       Type: AWS::KMS::Key
